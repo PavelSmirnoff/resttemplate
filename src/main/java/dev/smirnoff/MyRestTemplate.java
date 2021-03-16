@@ -5,6 +5,7 @@ import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * @author pavelsmirnov
@@ -34,16 +35,15 @@ public class MyRestTemplate {
         HttpHeaders httpHeaders = response.getHeaders();
         System.out.println("Response Headers: " + httpHeaders);
 
+
         String sessionId = response.getHeaders().getFirst("Set-Cookie");
-        System.out.println(sessionId);
+        headers.set("Cookie", sessionId);
 
         if (statusCode == HttpStatus.OK) {
-            User[] list = response.getBody();
-            Arrays.stream(list).forEach(System.out::println);
+            Arrays.stream(Objects.requireNonNull(response.getBody())).forEach(System.out::println);
         }
 
         //POST
-        headers.set("Cookie", sessionId);
         User userThree = new User();
         userThree.setId(3L);
         userThree.setName("James");
