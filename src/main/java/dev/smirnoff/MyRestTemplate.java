@@ -4,10 +4,8 @@ import dev.smirnoff.model.User;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
-import java.awt.*;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * @author pavelsmirnov
@@ -20,17 +18,17 @@ public class MyRestTemplate {
 
     public static void main(String[] args) {
 
-        HttpHeaders headers = new HttpHeaders();
+        //GET
+        HttpHeaders headersGet = new HttpHeaders();
 
-        //headers.setAccept(Collections.singletonList(MediaType.APPLICATION_JSON));
+        headersGet.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+        headersGet.setContentType(MediaType.APPLICATION_JSON);
+        headersGet.set("my_other_key", "my_other_value");
 
-        //headers.setContentType(MediaType.APPLICATION_JSON);
-        //headers.set("my_other_key", "my_other_value");
+        HttpEntity<User[]> entity = new HttpEntity<>(headersGet);
 
-        HttpEntity<User[]> entity = new HttpEntity<>(headers);
-
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<User[]> response = restTemplate.exchange(URL_API, HttpMethod.GET, entity, User[].class);
+        RestTemplate restTemplateGet = new RestTemplate();
+        ResponseEntity<User[]> response = restTemplateGet.exchange(URL_API, HttpMethod.GET, entity, User[].class);
 
         HttpStatus statusCode = response.getStatusCode();
         System.out.println("Response Satus Code: " + statusCode);
@@ -38,7 +36,7 @@ public class MyRestTemplate {
         HttpHeaders httpHeaders = response.getHeaders();
         System.out.println("Response Headers: " + httpHeaders);
 
-        String sessionId = httpHeaders.getFirst("set-cookie");
+        String sessionId = response.getHeaders().getFirst("Set-Cookie");
         System.out.println(sessionId);
 
         if (statusCode == HttpStatus.OK) {
@@ -46,7 +44,27 @@ public class MyRestTemplate {
             Arrays.stream(list).forEach(System.out::println);
         }
 
-        User userThree = new User(3L,"James","Brown",(byte) 33);
+        //POST
+        HttpHeaders headersPost = new HttpHeaders();
+        headersPost.add("Accept", MediaType.APPLICATION_JSON_VALUE);
+        headersPost.setContentType(MediaType.APPLICATION_JSON);
+        headersPost.set("Cookie", sessionId);
 
+        User userThree = new User();
+        userThree.setId(3L);
+        userThree.setName("James");
+        userThree.setLastName("Brown");
+        userThree.setAge((byte)3);
+
+        HttpEntity<User> requestBody = new HttpEntity<>(userThree, headersPost);
+
+        RestTemplate restTemplatePost = new RestTemplate();
+        ResponseEntity<String> postResult = restTemplatePost.exchange(URL_API, HttpMethod.POST, requestBody, String.class);
+
+        System.out.println("Status code:" + postResult.getStatusCode());
+        if (postResult.getStatusCode() == HttpStatus.OK) {
+            String u = postResult.getBody();
+            System.out.println(u.toString());
+        }
     }
 }
